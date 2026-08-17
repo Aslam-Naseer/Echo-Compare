@@ -1,0 +1,1611 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jingran Echo Optimizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* Darker, cooler obsidian base */
+        --bg: #050506;
+        --bg-2: #0b0c0e;
+        --panel: #0d0f1280;
+        --panel-solid: #0d0f12;
+        --panel-2: #14171c;
+        --border: #232830;
+        --border-soft: #171b21;
+
+        /* Text & Neutral scale */
+        --text: #f4f6f8;
+        --muted: #8b95a5;
+        --muted-2: #62686d;
+
+        /* Bright Ember-Yellow Accents */
+        --accent: #ffd23f;
+        --accent-strong: #ffb703;
+        --accent-dim: #ffd23f1f;
+
+        /* Highlights & Special States */
+        --gold: #ffe17d;
+        --silver: #8fa0b8;
+        --warn: #60a5fa;
+        --radius: 10px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background:
+          radial-gradient(
+            ellipse 900px 500px at 15% -10%,
+            #3a170f4d,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 700px 500px at 100% 0%,
+            #1a1a3a3d,
+            transparent 55%
+          ),
+          var(--bg);
+        color: var(--text);
+        font-family: "Inter", sans-serif;
+        min-height: 100vh;
+        padding-bottom: 80px;
+      }
+      ::selection {
+        background: var(--accent);
+        color: #1a0d06;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      .wrap {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 36px 28px 0;
+      }
+
+      /* ---------- Header ---------- */
+      header.top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 24px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--border-soft);
+        padding-bottom: 22px;
+        margin-bottom: 28px;
+      }
+      .brand-eyebrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .brand-eyebrow .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 8px var(--accent);
+      }
+      h1 {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 34px;
+        font-weight: 700;
+        margin: 0 0 6px;
+        letter-spacing: -0.01em;
+      }
+      header.top p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14.5px;
+        max-width: 560px;
+      }
+
+      .cost-chain {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+      }
+      .cost-chain-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10.5px;
+        color: var(--muted-2);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      #save-indicator {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10.5px;
+        color: var(--muted-2);
+        letter-spacing: 0.06em;
+        opacity: 0;
+        transition: opacity 0.25s;
+        margin-top: 4px;
+      }
+      #save-indicator.show {
+        opacity: 1;
+        color: var(--accent);
+      }
+      .hexrow {
+        display: flex;
+        gap: 6px;
+      }
+      .hex {
+        width: 26px;
+        height: 26px;
+        position: relative;
+        clip-path: polygon(
+          50% 0%,
+          100% 25%,
+          100% 75%,
+          50% 100%,
+          0% 75%,
+          0% 25%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .hex.gold {
+        background: linear-gradient(160deg, var(--gold), #a97c34);
+        color: #2a1c04;
+      }
+      .hex.silver {
+        background: linear-gradient(160deg, var(--silver), #4b5876);
+        color: #0c1120;
+      }
+
+      /* ---------- Layout ---------- */
+      .layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 22px;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        position: sticky;
+        top: 20px;
+      }
+      @media (max-width: 900px) {
+        .stack {
+          position: static;
+        }
+      }
+
+      .card {
+        background: var(--panel-solid);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 18px 20px;
+      }
+      .card h2 {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0 0 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card .sub {
+        color: var(--muted-2);
+        font-size: 11.5px;
+        margin: 0 0 16px;
+      }
+
+      .field-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 11px;
+      }
+      .field-row:last-child {
+        margin-bottom: 0;
+      }
+      .field-row label {
+        font-size: 12.5px;
+        color: var(--muted);
+        flex: 1;
+      }
+      .field-row input[type="number"],
+      .field-row input[type="text"] {
+        width: 96px;
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 6px;
+        padding: 6px 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12.5px;
+        text-align: right;
+      }
+      .field-row input[type="text"] {
+        text-align: left;
+        width: 110px;
+      }
+      .field-row input:focus {
+        outline: 1px solid var(--accent);
+        border-color: var(--accent);
+      }
+
+      .toggle {
+        position: relative;
+        width: 38px;
+        height: 20px;
+        flex: none;
+        border-radius: 20px;
+        background: var(--border);
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .toggle.on {
+        background: var(--accent-strong);
+      }
+      .toggle::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: #0a0b12;
+        border-radius: 50%;
+        transition: 0.15s;
+      }
+      .toggle.on::after {
+        left: 20px;
+        background: #1a0d06;
+      }
+
+      hr.divider {
+        border: none;
+        border-top: 1px solid var(--border-soft);
+        margin: 14px 0;
+      }
+
+      .btn {
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        font-size: 13px;
+        border: 1px solid var(--border);
+        background: var(--panel-2);
+        color: var(--text);
+        padding: 9px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.12s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .btn.primary {
+        background: linear-gradient(160deg, var(--accent), #b8330f);
+        color: #1a0d06;
+        border: none;
+      }
+      .btn.primary:hover {
+        filter: brightness(1.1);
+        color: #1a0d06;
+      }
+      .btn.small {
+        padding: 5px 10px;
+        font-size: 11.5px;
+      }
+      .btn.ghost {
+        background: transparent;
+      }
+      .btn.danger:hover {
+        border-color: var(--warn);
+        color: var(--warn);
+      }
+
+      /* ---------- Echo slots ---------- */
+      .echo-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .echo-card {
+        background: var(--panel-solid);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 18px 18px;
+      }
+      .echo-card-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .echo-card-head input.echo-name {
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        font-size: 15px;
+        background: transparent;
+        border: none;
+        color: var(--text);
+        border-bottom: 1px dashed transparent;
+        padding: 2px 0;
+        flex: 1;
+        min-width: 140px;
+      }
+      .echo-card-head input.echo-name:focus {
+        outline: none;
+        border-bottom: 1px dashed var(--accent);
+      }
+      .cost-pill {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        padding: 3px 9px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .cost-pill.c4 {
+        background: #e8b96922;
+        color: var(--gold);
+        border: 1px solid #e8b96955;
+      }
+      .cost-pill.c1 {
+        background: #9fb0c922;
+        color: var(--silver);
+        border: 1px solid #9fb0c955;
+      }
+
+      .variant {
+        background: var(--bg-2);
+        border: 1px solid var(--border-soft);
+        border-radius: 8px;
+        padding: 11px 12px;
+        margin-bottom: 8px;
+      }
+      .variant:last-child {
+        margin-bottom: 0;
+      }
+      .variant-top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 9px;
+        flex-wrap: wrap;
+      }
+      .variant-top select {
+        background: var(--panel-2);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 5px 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11.5px;
+        max-width: 100%;
+      }
+      .variant-top .vlabel {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10.5px;
+        color: var(--muted-2);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .variant-top .spacer {
+        flex: 1;
+      }
+      .mainstat-readout {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--accent);
+        background: var(--accent-dim);
+        border: 1px solid #ff7a3d40;
+        border-radius: 20px;
+        padding: 3px 10px;
+        white-space: nowrap;
+      }
+
+      .substat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+        gap: 8px;
+      }
+      .substat {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .substat label {
+        font-size: 9.5px;
+        color: var(--muted-2);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .substat input {
+        width: 100%;
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 6px;
+        padding: 5px 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        text-align: right;
+      }
+      .substat input:focus {
+        outline: 1px solid var(--accent);
+        border-color: var(--accent);
+      }
+
+      .add-variant {
+        margin-top: 10px;
+      }
+
+      /* ---------- Results ---------- */
+      .results-card {
+        margin-top: 22px;
+      }
+      .results-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .results-count {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      table.results {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12.5px;
+      }
+      table.results th {
+        text-align: right;
+        padding: 8px 10px;
+        color: var(--muted-2);
+        font-weight: 600;
+        border-bottom: 1px solid var(--border);
+        text-transform: uppercase;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        white-space: nowrap;
+      }
+      table.results th:first-child,
+      table.results td:first-child {
+        text-align: left;
+      }
+      table.results th:nth-child(2),
+      table.results td:nth-child(2) {
+        text-align: left;
+      }
+      table.results td {
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border-soft);
+        text-align: right;
+        white-space: nowrap;
+      }
+      table.results tbody tr:hover {
+        background: #ffffff06;
+      }
+      table.results tbody tr.selected {
+        background: var(--accent-dim);
+      }
+      table.results tbody tr.selected td:first-child {
+        box-shadow: inset 3px 0 0 var(--accent);
+      }
+
+      .rank-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .rank-badge.r1 {
+        background: linear-gradient(160deg, #f4d789, #c99a2f);
+        color: #2a1c04;
+      }
+      .rank-badge.r2 {
+        background: linear-gradient(160deg, #dfe4ee, #9fb0c9);
+        color: #0c1120;
+      }
+      .rank-badge.r3 {
+        background: linear-gradient(160deg, #d9a06a, #a3623a);
+        color: #2a1204;
+      }
+      .rank-badge.rn {
+        background: var(--panel-2);
+        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: var(--muted-2);
+        font-size: 13px;
+        border: 1px dashed var(--border);
+        border-radius: 10px;
+      }
+
+      .warn-note {
+        font-size: 12px;
+        color: var(--warn);
+        background: #7d9bff14;
+        border: 1px solid #7d9bff45;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      footer.note {
+        text-align: center;
+        color: var(--muted-2);
+        font-size: 11.5px;
+        margin-top: 30px;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      /* ---------- Navbar ---------- */
+      nav.tabbar {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 26px;
+        border-bottom: 1px solid var(--border-soft);
+      }
+      nav.tabbar button {
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        font-size: 13.5px;
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        padding: 12px 18px 13px;
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: 0.01em;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        transition: 0.12s;
+      }
+      nav.tabbar button .tab-num {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10.5px;
+        color: var(--muted-2);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1px 5px;
+      }
+      nav.tabbar button:hover {
+        color: var(--text);
+      }
+      nav.tabbar button.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+      nav.tabbar button.active .tab-num {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .page {
+        display: none;
+      }
+      .page.active {
+        display: block;
+      }
+
+      .settings-results-grid {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 22px;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .settings-results-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      /* For Chrome, Safari, Edge, and Opera */
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <div>
+          <div class="brand-eyebrow"><span class="dot"></span> JINGRAN</div>
+          <h1>Echo Optimizer</h1>
+          <p>
+            Configure your echo sets, stat priorities and base multipliers, then
+            run the solver to rank every valid five-echo combination by damage
+            score.
+          </p>
+        </div>
+        <div class="cost-chain">
+          <div class="cost-chain-label">Slot Cost — 4 · 4 · 1 · 1 · 1</div>
+          <div class="hexrow">
+            <div class="hex gold">4</div>
+            <div class="hex gold">4</div>
+            <div class="hex silver">1</div>
+            <div class="hex silver">1</div>
+            <div class="hex silver">1</div>
+          </div>
+          <div id="save-indicator">● Saved</div>
+        </div>
+      </header>
+
+      <nav class="tabbar">
+        <button class="tab-btn" data-page="page-echoes">Echoes</button>
+        <button class="tab-btn" data-page="page-base">Base Stats</button>
+        <button class="tab-btn active" data-page="page-settings">
+          Results
+        </button>
+      </nav>
+
+      <!-- ============ PAGE 1: ECHOES ============ -->
+      <div class="page" id="page-echoes">
+        <div class="card">
+          <h2>Echoes</h2>
+          <p class="sub">
+            Two 4-cost mains are always equipped. Exactly one of the four 1-cost
+            sets is left out of each combination the solver tries.
+          </p>
+          <div class="echo-grid" id="echo-grid"></div>
+        </div>
+      </div>
+
+      <!-- ============ PAGE 2: BASE STATS ============ -->
+      <div class="page" id="page-base">
+        <div class="card" id="base-card" style="max-width: 640px">
+          <h2>Base Effects</h2>
+          <p class="sub">Character, weapon &amp; skill contributions</p>
+
+          <div class="field-row">
+            <label>HP base</label
+            ><input type="number" data-base="HP_BASE" step="1" />
+          </div>
+          <div class="field-row">
+            <label>ATK base</label
+            ><input type="number" data-base="ATK_BASE" onwheel="this.blur()" />
+          </div>
+          <hr class="divider" />
+          <div class="field-row">
+            <label>Crit Rate (character)</label
+            ><input type="number" data-base="CR_CHAR" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>Crit DMG (character)</label
+            ><input type="number" data-base="CD_CHAR" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>Energy Regen (character)</label
+            ><input type="number" data-base="ER_CHAR" step="0.1" />
+          </div>
+          <hr class="divider" />
+          <div class="field-row">
+            <label>HP% — signature</label
+            ><input type="number" data-base="HP_SIG" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>HP% — skill</label
+            ><input type="number" data-base="HP_SKILL" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>HP% — sonata</label
+            ><input type="number" data-base="HP_SONATA" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>CR% — skill</label
+            ><input type="number" data-base="CR_SKILL" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>CR% — sonata</label
+            ><input type="number" data-base="CR_SONATA" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>CR% — skill-crit (on)</label
+            ><input type="number" data-base="CR_SK" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>CR% — sig-crit (on)</label
+            ><input type="number" data-base="CR_SIG" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>CD% — skill-crit (on)</label
+            ><input type="number" data-base="CD_SK" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>CD% — sig-crit (on)</label
+            ><input type="number" data-base="CD_SIG" step="0.1" />
+          </div>
+          <hr class="divider" />
+          <div class="field-row">
+            <label>DMG bonus — sonata</label
+            ><input type="number" data-base="DMG_BONUS_SONATA" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>DMG bonus — main slot</label
+            ><input type="number" data-base="DMG_BONUS_MAIN_SLOT" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>DMG bonus per 1k HP (base)</label
+            ><input type="number" data-base="DMG_PER_1K_BASE" step="0.01" />
+          </div>
+          <div class="field-row">
+            <label>DMG bonus per 1k HP × shroud</label
+            ><input
+              type="number"
+              data-base="DMG_PER_1K_PER_SHROUD"
+              step="0.01"
+            />
+          </div>
+          <div class="field-row">
+            <label>ATK flat per 1k HP</label
+            ><input type="number" data-base="ATK_FLAT_PER_1K_HP" step="1" />
+          </div>
+          <hr class="divider" />
+          <div class="field-row">
+            <label>CR% extra</label
+            ><input type="number" data-base="CR_EXTRA" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>CD% extra</label
+            ><input type="number" data-base="CD_EXTRA" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>HP% extra</label
+            ><input type="number" data-base="HP_EXTRA" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>ATK% extra</label
+            ><input type="number" data-base="ATK_EXTRA" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>ATK flat extra</label
+            ><input type="number" data-base="ATK_FLAT_EXTRA" step="1" />
+          </div>
+          <div class="field-row">
+            <label>HP flat extra</label
+            ><input type="number" data-base="HP_FLAT_EXTRA" step="1" />
+          </div>
+          <div class="field-row">
+            <label>DMG bonus extra</label
+            ><input type="number" data-base="DMG_BONUS_EXTRA" step="0.1" />
+          </div>
+          <div class="field-row">
+            <label>ER% extra</label
+            ><input type="number" data-base="ER_EXTRA" step="0.1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ PAGE 3: SETTINGS & RESULTS ============ -->
+      <div class="page active" id="page-settings">
+        <div class="settings-results-grid">
+          <div class="stack" style="position: static">
+            <div class="card" id="settings-card">
+              <h2>Settings</h2>
+              <p class="sub">Solver behavior &amp; filters</p>
+
+              <div class="field-row">
+                <label>Enable SK crits</label>
+                <div class="toggle" data-setting="ENABLE_SK_CRITS"></div>
+              </div>
+              <div class="field-row">
+                <label>Enable Signature crits</label>
+                <div class="toggle" data-setting="ENABLE_SIG_CRITS"></div>
+              </div>
+              <div class="field-row">
+                <label>Filter builds under 50k HP</label>
+                <div class="toggle" data-setting="FILTER_LOW_HP"></div>
+              </div>
+              <hr class="divider" />
+              <div class="field-row">
+                <label>Ghost Shrouds stacks</label>
+                <input type="number" data-setting="GHOST_SHROUDS" step="1" />
+              </div>
+              <div class="field-row">
+                <label>Minimum ER %</label>
+                <input type="number" data-setting="ER_MINIMUM" step="1" />
+              </div>
+              <div class="field-row">
+                <label>Top N to display</label>
+                <input type="number" data-setting="TOP_N" step="1" />
+              </div>
+              <div class="field-row">
+                <label>Track build (name)</label>
+                <input
+                  type="text"
+                  data-setting="SELECTED_BUILD"
+                  placeholder="e.g. 11-1101"
+                />
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px">
+              <button class="btn ghost small" id="reset-btn">
+                ↺ Reset all defaults
+              </button>
+            </div>
+          </div>
+
+          <!-- RIGHT: Results -->
+          <div class="card results-card" style="margin-top: 0">
+            <div class="results-head">
+              <h2 style="margin: 0">Results</h2>
+              <button class="btn primary" id="run-btn">▶ Run Solver</button>
+            </div>
+            <div id="results-meta" class="results-count"></div>
+            <div id="results-container" style="margin-top: 14px">
+              <div class="empty-state">
+                Configure your echoes and press <strong>Run Solver</strong> to
+                rank builds.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="note">
+        All figures are theoretical, derived from your inputs only — verify
+        against in-game combat stats.
+      </footer>
+    </div>
+
+    <script>
+      /* ============================================================
+   CONSTANTS
+   ============================================================ */
+      const MAINSTATS = {
+        CD_4: { cd: 44, atk_: 150 },
+        CR_4: { cr: 22, atk_: 150 },
+        ATK_1: { atk: 18, hp_: 2280 },
+        HP_1: { hp: 22.8, hp_: 2280 },
+      };
+      const STAT_KEYS = ["cr", "cd", "er", "atk", "atk_", "hp", "hp_"];
+      const SUB_FIELDS = [
+        "cr",
+        "cd",
+        "er",
+        "atk",
+        "atk_",
+        "hp",
+        "hp_",
+        "heavy",
+      ];
+      const SUB_LABELS = {
+        cr: "CR%",
+        cd: "CD%",
+        er: "ER%",
+        atk: "ATK%",
+        atk_: "ATK flat",
+        hp: "HP%",
+        hp_: "HP flat",
+        heavy: "Heavy%",
+      };
+      const PERCENT_KEYS = new Set(["cr", "cd", "hp", "atk"]);
+      const MAIN_LABELS = {
+        cr: "CR",
+        cd: "CD",
+        atk: "ATK",
+        atk_: "ATK",
+        hp: "HP",
+        hp_: "HP",
+      };
+
+      function mainStatText(mainKey) {
+        const m = MAINSTATS[mainKey];
+        if (!m) return "";
+        return Object.entries(m)
+          .map(([k, v]) => {
+            const label = MAIN_LABELS[k] || k;
+            return PERCENT_KEYS.has(k) ? `${v}% ${label}` : `+${v} ${label}`;
+          })
+          .join(" · ");
+      }
+
+      /* ============================================================
+   DEFAULT STATE
+   ============================================================ */
+      function defaultSettings() {
+        return {
+          ENABLE_SK_CRITS: false,
+          ENABLE_SIG_CRITS: true,
+          FILTER_LOW_HP: true,
+          GHOST_SHROUDS: 50,
+          ER_MINIMUM: 120,
+          TOP_N: 12,
+          SELECTED_BUILD: "11-1110",
+        };
+      }
+      function defaultBase() {
+        return {
+          HP_BASE: 15375,
+          ATK_BASE: 726,
+          CR_CHAR: 5,
+          CD_CHAR: 150,
+          ER_CHAR: 100,
+          HP_SIG: 72.2,
+          HP_SKILL: 12,
+          HP_SONATA: 10,
+          CR_SKILL: 8,
+          CR_SONATA: 20,
+          CR_SK: 12.5,
+          CR_SIG: 12,
+          CD_SK: 25,
+          CD_SIG: 24,
+          DMG_BONUS_SONATA: 15,
+          DMG_BONUS_MAIN_SLOT: 24,
+          DMG_PER_1K_BASE: 1.5,
+          DMG_PER_1K_PER_SHROUD: 0.05,
+          ATK_FLAT_PER_1K_HP: 36,
+          CR_EXTRA: 0,
+          CD_EXTRA: 0,
+          HP_EXTRA: 0,
+          ATK_EXTRA: 0,
+          ATK_FLAT_EXTRA: 0,
+          HP_FLAT_EXTRA: 0,
+          DMG_BONUS_EXTRA: 0,
+          ER_EXTRA: 0,
+        };
+      }
+      function defaultSlots() {
+        return [
+          {
+            name: "Myriad Snare",
+            cost: 4,
+            options: [
+              {
+                mainKey: "CD_4",
+                sub: { cd: 15, cr: 7.5, atk: 8.1, hp: 9.4, er: 10, hp_: 510 },
+              },
+              {
+                mainKey: "CR_4",
+                sub: { cd: 15, cr: 7.5, atk: 8.1, hp: 9.4, er: 10, hp_: 510 },
+              },
+            ],
+          },
+          {
+            name: "Calamity Effigy",
+            cost: 4,
+            options: [
+              {
+                mainKey: "CD_4",
+                sub: { cd: 15, cr: 7.5, er: 10.8, heavy: 8.1, hp: 10.1 },
+              },
+            ],
+          },
+          {
+            name: "Yellow Puppet",
+            cost: 1,
+            options: [
+              { mainKey: "HP_1", sub: { cd: 15, cr: 7.5, er: 10.8 } },
+              { mainKey: "ATK_1", sub: { cd: 15, cr: 7.5, er: 10.8 } },
+            ],
+          },
+          {
+            name: "Purple Puppet",
+            cost: 1,
+            options: [
+              { mainKey: "HP_1", sub: { cd: 15, cr: 7.5, er: 12.4 } },
+              {
+                mainKey: "ATK_1",
+                sub: { cd: 12.6, cr: 8.1, hp: 10.1, hp_: 430 },
+              },
+            ],
+          },
+          {
+            name: "Porcelain Picket",
+            cost: 1,
+            options: [
+              { mainKey: "HP_1", sub: { cd: 15, cr: 7.5, atk: 9.4 } },
+              { mainKey: "ATK_1", sub: { cd: 19.8, cr: 6.3, er: 9.2 } },
+            ],
+          },
+          {
+            name: "Stone Picket",
+            cost: 1,
+            options: [
+              { mainKey: "HP_1", sub: { cd: 15, cr: 7.5, er: 9.2, hp: 10.1 } },
+              {
+                mainKey: "ATK_1",
+                sub: { cd: 6.3, cr: 10.5, heavy: 9.4, hp: 10.1 },
+              },
+            ],
+          },
+        ];
+      }
+
+      let state = {
+        settings: defaultSettings(),
+        base: defaultBase(),
+        slots: defaultSlots(),
+      };
+
+      /* ============================================================
+   PERSISTENCE (localStorage)
+   ============================================================ */
+      const STORAGE_KEY = "echo-optimizer-state-v1";
+      let saveTimer = null;
+
+      function saveState() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            flashSavedIndicator();
+          } catch (e) {
+            console.warn("Could not save to localStorage:", e);
+          }
+        }, 150);
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return false;
+          const parsed = JSON.parse(raw);
+          // Merge onto defaults so new fields introduced in future versions
+          // don't break older saved data.
+          state = {
+            settings: Object.assign(defaultSettings(), parsed.settings || {}),
+            base: Object.assign(defaultBase(), parsed.base || {}),
+            slots:
+              Array.isArray(parsed.slots) && parsed.slots.length
+                ? parsed.slots
+                : defaultSlots(),
+          };
+          return true;
+        } catch (e) {
+          console.warn("Could not load saved state:", e);
+          return false;
+        }
+      }
+
+      function clearSavedState() {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {}
+      }
+
+      function flashSavedIndicator() {
+        const el = document.getElementById("save-indicator");
+        if (!el) return;
+        el.classList.add("show");
+        clearTimeout(flashSavedIndicator._t);
+        flashSavedIndicator._t = setTimeout(
+          () => el.classList.remove("show"),
+          1400,
+        );
+      }
+
+      /* ============================================================
+   RENDER: SETTINGS / BASE PANELS
+   ============================================================ */
+      function renderSettingsPanel() {
+        document.querySelectorAll("[data-setting]").forEach((el) => {
+          const key = el.dataset.setting;
+          if (el.classList.contains("toggle")) {
+            el.classList.toggle("on", !!state.settings[key]);
+            el.onclick = () => {
+              state.settings[key] = !state.settings[key];
+              renderSettingsPanel();
+              saveState();
+            };
+          } else {
+            el.value = state.settings[key];
+            el.oninput = () => {
+              state.settings[key] =
+                el.type === "number" ? parseFloat(el.value || 0) : el.value;
+              saveState();
+            };
+          }
+        });
+      }
+      function renderBasePanel() {
+        document.querySelectorAll("[data-base]").forEach((el) => {
+          const key = el.dataset.base;
+          el.value = state.base[key];
+          el.oninput = () => {
+            state.base[key] = parseFloat(el.value || 0);
+            saveState();
+          };
+        });
+      }
+
+      /* ============================================================
+   RENDER: ECHOES
+   ============================================================ */
+      function mainOptionsForCost(cost) {
+        return cost === 4 ? ["CD_4", "CR_4"] : ["ATK_1", "HP_1"];
+      }
+
+      function renderEchoGrid() {
+        const grid = document.getElementById("echo-grid");
+        grid.innerHTML = "";
+
+        state.slots.forEach((slot, si) => {
+          const card = document.createElement("div");
+          card.className = "echo-card";
+
+          const head = document.createElement("div");
+          head.className = "echo-card-head";
+
+          const nameInput = document.createElement("input");
+          nameInput.className = "echo-name";
+          nameInput.value = slot.name;
+          nameInput.oninput = () => {
+            slot.name = nameInput.value;
+            saveState();
+          };
+
+          const costPill = document.createElement("span");
+          costPill.className = "cost-pill " + (slot.cost === 4 ? "c4" : "c1");
+          costPill.textContent = slot.cost + "-cost";
+          costPill.title = "Click to switch cost tier";
+          costPill.style.cursor = "pointer";
+          costPill.onclick = () => {
+            slot.cost = slot.cost === 4 ? 1 : 4;
+            const valid = mainOptionsForCost(slot.cost);
+            slot.options.forEach((o) => {
+              if (!valid.includes(o.mainKey)) o.mainKey = valid[0];
+            });
+            renderEchoGrid();
+            saveState();
+          };
+
+          head.appendChild(nameInput);
+          head.appendChild(costPill);
+          card.appendChild(head);
+
+          slot.options.forEach((opt, oi) => {
+            card.appendChild(renderVariant(slot, si, opt, oi));
+          });
+
+          const addBtn = document.createElement("button");
+          addBtn.className = "btn small ghost add-variant";
+          addBtn.textContent = "+ Add variant";
+          addBtn.onclick = () => {
+            const valid = mainOptionsForCost(slot.cost);
+            slot.options.push({ mainKey: valid[0], sub: {} });
+            renderEchoGrid();
+            saveState();
+          };
+          card.appendChild(addBtn);
+
+          grid.appendChild(card);
+        });
+      }
+
+      function renderVariant(slot, si, opt, oi) {
+        const v = document.createElement("div");
+        v.className = "variant";
+
+        const top = document.createElement("div");
+        top.className = "variant-top";
+
+        const vlabel = document.createElement("span");
+        vlabel.className = "vlabel";
+        vlabel.textContent = "Variant " + (oi + 1);
+
+        const select = document.createElement("select");
+        mainOptionsForCost(slot.cost).forEach((k) => {
+          const o = document.createElement("option");
+          o.value = k;
+          o.textContent = `${k.replace("_", " ")}`;
+          if (k === opt.mainKey) o.selected = true;
+          select.appendChild(o);
+        });
+
+        const readout = document.createElement("span");
+        readout.className = "mainstat-readout";
+        readout.textContent = mainStatText(opt.mainKey);
+
+        select.onchange = () => {
+          opt.mainKey = select.value;
+          readout.textContent = mainStatText(opt.mainKey);
+          saveState();
+        };
+
+        const spacer = document.createElement("div");
+        spacer.className = "spacer";
+
+        const rmBtn = document.createElement("button");
+        rmBtn.className = "btn small ghost danger";
+        rmBtn.textContent = "✕";
+        rmBtn.title = "Remove variant";
+        rmBtn.onclick = () => {
+          if (slot.options.length <= 0) return;
+          slot.options.splice(oi, 1);
+          renderEchoGrid();
+          saveState();
+        };
+
+        top.appendChild(vlabel);
+        top.appendChild(select);
+        top.appendChild(readout);
+        top.appendChild(spacer);
+        top.appendChild(rmBtn);
+        v.appendChild(top);
+
+        const subGrid = document.createElement("div");
+        subGrid.className = "substat-grid";
+        SUB_FIELDS.forEach((f) => {
+          const wrap = document.createElement("div");
+          wrap.className = "substat";
+          const lab = document.createElement("label");
+          lab.textContent = SUB_LABELS[f];
+          const inp = document.createElement("input");
+          inp.type = "number";
+          inp.step = "0.1";
+          inp.value = opt.sub[f] !== undefined ? opt.sub[f] : "";
+          inp.placeholder = "0";
+          inp.oninput = () => {
+            const val = parseFloat(inp.value);
+            if (isNaN(val) || val === 0) {
+              delete opt.sub[f];
+            } else {
+              opt.sub[f] = val;
+            }
+            saveState();
+          };
+          wrap.appendChild(lab);
+          wrap.appendChild(inp);
+          subGrid.appendChild(wrap);
+        });
+        v.appendChild(subGrid);
+
+        return v;
+      }
+
+      /* ============================================================
+   SOLVER
+   ============================================================ */
+      function dfs(storage, cur, sizes, pos) {
+        if (pos >= sizes.length) {
+          storage.push([...cur]);
+          return;
+        }
+        const count = sizes[pos];
+        if (count === 0) {
+          cur.push(-1);
+          dfs(storage, cur, sizes, pos + 1);
+          cur.pop();
+          return;
+        }
+        for (let i = 0; i < count; i++) {
+          cur.push(i);
+          dfs(storage, cur, sizes, pos + 1);
+          cur.pop();
+        }
+      }
+      function generateBuilds(sizes) {
+        const storage = [];
+        dfs(storage, [], sizes, 0);
+        return storage;
+      }
+      function getBuildIndices(slots) {
+        const lens = slots.map((s) => s.options.length);
+        const [e1, e2, e3, e4, e5, e6] = lens;
+        return [
+          ...generateBuilds([e1, e2, 0, e4, e5, e6]),
+          ...generateBuilds([e1, e2, e3, 0, e5, e6]),
+          ...generateBuilds([e1, e2, e3, e4, 0, e6]),
+          ...generateBuilds([e1, e2, e3, e4, e5, 0]),
+        ];
+      }
+      function buildName(index) {
+        let name = "";
+        for (let i = 0; i < index.length; i++) {
+          if (i === 2) name += "-";
+          name += index[i] === -1 ? "0" : index[i] + 1;
+        }
+        return name;
+      }
+
+      function computeBaseValues() {
+        const b = state.base,
+          s = state.settings;
+        const CR_SK = s.ENABLE_SK_CRITS ? b.CR_SK : 0;
+        const CR_SIG = s.ENABLE_SIG_CRITS ? b.CR_SIG : 0;
+        const CD_SK = s.ENABLE_SK_CRITS ? b.CD_SK : 0;
+        const CD_SIG = s.ENABLE_SIG_CRITS ? b.CD_SIG : 0;
+        return {
+          CR_BASE:
+            b.CR_CHAR + b.CR_SKILL + CR_SK + CR_SIG + b.CR_SONATA + b.CR_EXTRA,
+          CD_BASE: b.CD_CHAR + CD_SK + CD_SIG + b.CD_EXTRA,
+          ER_BASE: b.ER_CHAR + b.ER_EXTRA,
+          HP_PERCENT_BASE: b.HP_SIG + b.HP_SKILL + b.HP_SONATA + b.HP_EXTRA,
+          ATK_PERCENT_BASE: b.ATK_EXTRA,
+          DMG_BONUS_BASE:
+            b.DMG_BONUS_SONATA + b.DMG_BONUS_MAIN_SLOT + b.DMG_BONUS_EXTRA,
+          DMG_BONUS_PER_1K_HP:
+            b.DMG_PER_1K_BASE + b.DMG_PER_1K_PER_SHROUD * s.GHOST_SHROUDS,
+        };
+      }
+
+      function getBuildStat(index, slots, bases) {
+        const build = {
+          name: buildName(index),
+          cr: bases.CR_BASE,
+          cd: bases.CD_BASE,
+          er: bases.ER_BASE,
+          atk: bases.ATK_PERCENT_BASE,
+          atk_: state.base.ATK_FLAT_EXTRA,
+          hp: bases.HP_PERCENT_BASE,
+          hp_: state.base.HP_FLAT_EXTRA,
+          bonus: bases.DMG_BONUS_BASE,
+        };
+        for (let i = 0; i < index.length; i++) {
+          if (index[i] === -1) continue;
+          const opt = slots[i].options[index[i]];
+          if (!opt) continue;
+          const main = MAINSTATS[opt.mainKey] || {};
+          for (const key of STAT_KEYS) {
+            if (main[key] !== undefined) build[key] += main[key];
+            if (opt.sub[key] !== undefined) build[key] += opt.sub[key];
+          }
+          build.bonus += opt.sub.heavy || 0;
+        }
+        return build;
+      }
+
+      function cleanBuild(raw, bases) {
+        const HP_BASE = state.base.HP_BASE,
+          ATK_BASE = state.base.ATK_BASE;
+        const hpFinal = HP_BASE * (1 + raw.hp / 100) + raw.hp_;
+        const hpStacks = Math.min(50, Math.floor(hpFinal / 1000));
+        const atk =
+          ATK_BASE * (1 + raw.atk / 100) +
+          raw.atk_ +
+          state.base.ATK_FLAT_PER_1K_HP * hpStacks;
+        const cr = Math.min(raw.cr, 100) / 100;
+        const cd = raw.cd / 100;
+        const bonus = (raw.bonus + bases.DMG_BONUS_PER_1K_HP * hpStacks) / 100;
+        const score = atk * (1 + bonus) * (cr * cd + (1 - cr));
+        return {
+          name: raw.name,
+          atk,
+          hp: hpFinal,
+          score,
+          cr: raw.cr,
+          cd: raw.cd,
+          er: raw.er,
+          heavy: raw.bonus - bases.DMG_BONUS_BASE,
+        };
+      }
+
+      function runSolver() {
+        const slots = state.slots;
+        if (slots.some((s) => s.options.length === 0 && slots.indexOf(s) < 2)) {
+          return { error: "Both 4-cost echo slots need at least one variant." };
+        }
+        const bases = computeBaseValues();
+        const indices = getBuildIndices(slots);
+        const raw = indices.map((idx) => getBuildStat(idx, slots, bases));
+        const cleaned = raw.map((r) => cleanBuild(r, bases));
+
+        const HP_MIN = state.settings.FILTER_LOW_HP ? 50000 : 0;
+        const filtered = cleaned.filter(
+          (b) => b.er >= state.settings.ER_MINIMUM && b.hp >= HP_MIN,
+        );
+        filtered.sort(
+          (a, b) => Math.round(b.score) - Math.round(a.score) || b.er - a.er,
+        );
+
+        return { builds: filtered, totalGenerated: cleaned.length };
+      }
+
+      /* ============================================================
+   RENDER: RESULTS
+   ============================================================ */
+      function rankBadge(rank) {
+        const cls =
+          rank === 1 ? "r1" : rank === 2 ? "r2" : rank === 3 ? "r3" : "rn";
+        return `<span class="rank-badge ${cls}">${rank}</span>`;
+      }
+
+      function renderResults() {
+        const meta = document.getElementById("results-meta");
+        const container = document.getElementById("results-container");
+        const result = runSolver();
+
+        if (result.error) {
+          container.innerHTML = `<div class="warn-note">${result.error}</div>`;
+          meta.textContent = "";
+          return;
+        }
+
+        const { builds, totalGenerated } = result;
+        meta.textContent = `${builds.length.toLocaleString()} builds passed filters (of ${totalGenerated.toLocaleString()} generated)`;
+
+        if (builds.length === 0) {
+          container.innerHTML = `<div class="empty-state">No builds satisfy the current filters. Loosen ER minimum or HP filter.</div>`;
+          return;
+        }
+
+        const topN = Math.max(1, Math.floor(state.settings.TOP_N) || 15);
+        let selectedIndex = state.settings.SELECTED_BUILD
+          ? builds.findIndex((b) => b.name === state.settings.SELECTED_BUILD)
+          : 0;
+
+        let warnHtml = "";
+        if (state.settings.SELECTED_BUILD && selectedIndex === -1) {
+          warnHtml = `<div class="warn-note">Tracked build "${state.settings.SELECTED_BUILD}" not found among filtered builds — defaulting to #1 as the 100% reference.</div>`;
+          selectedIndex = 0;
+        }
+        const selectedScore = builds[selectedIndex].score;
+
+        const rows = [];
+        const top = builds.slice(0, topN);
+        top.forEach((b, i) =>
+          rows.push(rowHtml(b, i + 1, selectedScore, i === selectedIndex)),
+        );
+
+        let tailHtml = "";
+        if (selectedIndex >= topN) {
+          tailHtml =
+            `<tr><td colspan="10" style="border-bottom:none;padding:4px 0;"></td></tr>` +
+            rowHtml(
+              builds[selectedIndex],
+              selectedIndex + 1,
+              selectedScore,
+              true,
+            );
+        }
+
+        container.innerHTML =
+          warnHtml +
+          `
+    <table class="results">
+      <thead><tr>
+        <th>#</th><th>Build</th><th>Score</th><th>% vs tracked</th>
+        <th>ATK</th><th>HP</th><th>CR%</th><th>CD%</th><th>ER%</th><th>Heavy%</th>
+      </tr></thead>
+      <tbody>${rows.join("")}${tailHtml}</tbody>
+    </table>`;
+      }
+
+      function rowHtml(b, rank, selectedScore, isSelected) {
+        const delta = ((b.score / selectedScore) * 100).toFixed(1) + "%";
+        return `<tr class="${isSelected ? "selected" : ""}">
+    <td>${rankBadge(rank)}</td>
+    <td>${b.name}</td>
+    <td>${b.score.toFixed(1)}</td>
+    <td>${delta}</td>
+    <td>${b.atk.toFixed(0)}</td>
+    <td>${b.hp.toFixed(0)}</td>
+    <td>${b.cr.toFixed(1)}</td>
+    <td>${b.cd.toFixed(1)}</td>
+    <td>${b.er.toFixed(1)}</td>
+    <td>${b.heavy.toFixed(1)}</td>
+  </tr>`;
+      }
+
+      /* ============================================================
+   INIT
+   ============================================================ */
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.onclick = () => {
+          document
+            .querySelectorAll(".tab-btn")
+            .forEach((b) => b.classList.remove("active"));
+          document
+            .querySelectorAll(".page")
+            .forEach((p) => p.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById(btn.dataset.page).classList.add("active");
+        };
+      });
+
+      document.getElementById("run-btn").onclick = renderResults;
+      document.getElementById("reset-btn").onclick = () => {
+        if (
+          !confirm(
+            "Reset settings, echoes and base stats to defaults? This clears your saved data.",
+          )
+        )
+          return;
+        state = {
+          settings: defaultSettings(),
+          base: defaultBase(),
+          slots: defaultSlots(),
+        };
+        clearSavedState();
+        renderSettingsPanel();
+        renderBasePanel();
+        renderEchoGrid();
+        document.getElementById("results-container").innerHTML =
+          `<div class="empty-state">Configure your echoes and press <strong>Run Solver</strong> to rank builds.</div>`;
+        document.getElementById("results-meta").textContent = "";
+      };
+
+      const restored = loadState();
+      renderSettingsPanel();
+      renderBasePanel();
+      renderEchoGrid();
+      if (restored) {
+        const el = document.getElementById("save-indicator");
+        if (el) {
+          el.textContent = "● Restored saved data";
+          flashSavedIndicator();
+          setTimeout(() => {
+            el.textContent = "● Saved";
+          }, 1600);
+        }
+      }
+
+      document.addEventListener(
+        "wheel",
+        function (event) {
+          // Check if the scrolled element is a number input and is currently active
+          if (
+            event.target.type === "number" &&
+            event.target === document.activeElement
+          ) {
+            event.preventDefault();
+          }
+        },
+        { passive: false },
+      );
+    </script>
+  </body>
+</html>
